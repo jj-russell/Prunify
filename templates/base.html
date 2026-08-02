@@ -9,14 +9,19 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
     {% block styles %} {% endblock %}
   </head>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <body>
     <header>
       <a href="{{ url_for('index') }}">Home</a>
       <a href="{{ url_for('select_playlist') }}">Playlist Cleaner</a>
     </header>
     <main>{% block main_content %} {% endblock %}</main>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <{% block scripts %} {% endblock %}
   </body>
 </html>

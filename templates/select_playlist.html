@@ -1,15 +1,29 @@
-{% extends "base.html" %}
+{% extends "base.html" %} 
     {% block styles %}
-        <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='select_playlist.css') }}"
-        />
+    <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='select_playlist.css') }}"
+    />
     {% endblock %}
-    {% block main_content %}
-        {% for playlist in playlists %}
-        <div class="playlist-card">
-            <img src='{{ playlist["images"][0]["url"] }}' alt="Album cover">
-            <h1>{{ playlist["name"] }}</h1>
-        <div>
-        {% endfor %}
+
+    {% block main_content %} 
+        <div class="swiper">
+        <div class="swiper-wrapper">
+            {% for playlist in playlists %}
+            <div class="swiper-slide">
+            <div class="playlist-card">
+                <img src="{{ playlist['images'][0]['url'] }}" />
+                <h3>{{ playlist["name"] }}</h3>
+            </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+        </div>
+    {% endblock %}
+
+    <{% block scripts %}
+        <script src="{{ url_for('static', filename='carousel.js') }}"></script> 
     {% endblock %}
