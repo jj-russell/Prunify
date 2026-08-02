@@ -12,13 +12,35 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 @app.route("/")
-def home():
+def index():
+    return render_template("index.html")
+
+@app.route("/select_playlist")
+def select_playlist():
     scope="user-library-read"
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
-                                                client_secret=CLIENT_SECRET,
-                                                redirect_uri=REDIRECT_URI,
-                                                scope=scope))
+                                                        client_secret=CLIENT_SECRET,
+                                                        redirect_uri=REDIRECT_URI,
+                                                        scope=scope))
+    playlists_info = sp.current_user_playlists()
+    playlists = []
 
+    for playlist in playlists_info["items"]:
+        playlists.append(playlist)
+        name = playlist["name"]
+        playlist_id = playlist["id"]
+        # print(name)
+
+    print(playlists)
+
+    return render_template("select_playlist.html", playlists=playlists)
+
+def generate_playlist_array():
+    scope="user-library-read"
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
+                                                        client_secret=CLIENT_SECRET,
+                                                        redirect_uri=REDIRECT_URI,
+                                                        scope=scope))
     playlists = sp.current_user_playlists()
     for playlist in playlists["items"]:
         name = playlist["name"]
@@ -42,15 +64,26 @@ def home():
             else:
                 break
 
-        print(f"Found {len(tracks)} tracks.")
-        i = 0
-        for track in tracks:
-            track = sp.track(track["id"]) # get track info
-            image_url = track["album"]["images"][0]["url"]
-            print(image_url)
-            break
+        return tracks
+     
 
-        return render_template("index.html", image_url=image_url)
+@app.route("/track_swipe")
+def track_swipe():
+    scope="user-library-read"
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
+                                                        client_secret=CLIENT_SECRET,
+                                                        redirect_uri=REDIRECT_URI,
+                                                        scope=scope))
+    tracks = generate_playlist_array()
+    
+    print(f"Found {len(tracks)} tracks.")
+    for track in tracks:
+        track = sp.track(track["id"]) # get track info
+        image_url = track["album"]["images"][0]["url"]
+        print(image_url)
+        break
+
+    return render_template("track_swipe.html", image_url=image_url)
 
 if __name__ == "__main__":
     app.run(debug=True)

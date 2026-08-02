@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+    {% block styles %}
+        <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='select_playlist.css') }}"
+        />
+    {% endblock %}
+    {% block main_content %}
+        {% for playlist in playlists %}
+        <div class="playlist-card">
+            <img src='{{ playlist["images"][0]["url"] }}' alt="Album cover">
+            <h1>{{ playlist["name"] }}</h1>
+        <div>
+        {% endfor %}
+    {% endblock %}
