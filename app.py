@@ -1,17 +1,12 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
 
 @app.route("/")
 def home():
-    return render_template("index.html")
-
-
-@app.route("/api/health")
-def health():
-    return jsonify({"status": "ok"})
-
+    image_url = "https://i.scdn.co/image/ab67616d0000b273c56dcd1015c1ffb8c56d2988"
+    return render_template("index.html", image_url=image_url)
 
 if __name__ == "__main__":
     app.run(debug=True)
