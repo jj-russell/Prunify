@@ -8,19 +8,21 @@
 
     {% block main_content %} 
         <div class="swiper">
-        <div class="swiper-wrapper">
-            {% for playlist in playlists %}
-            <div class="swiper-slide">
-            <div class="playlist-card">
-                <img src="{{ playlist['images'][0]['url'] }}" />
-                <h3>{{ playlist["name"] }}</h3>
+            <div class="swiper-wrapper">
+                {% for playlist in playlists %}
+                <div class="swiper-slide">
+                <div class="playlist-card">
+                    <a href="{{ url_for('track_swipe') }}">
+                        <img src="{{ playlist['images'][0]['url'] }}" />
+                    </a>
+                    <h3>{{ playlist["name"] }}</h3>
+                </div>
+                </div>
+                {% endfor %}
             </div>
-            </div>
-            {% endfor %}
-        </div>
 
-        <div class="swiper-button-prev"></div>
-        <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
         </div>
     {% endblock %}
 
