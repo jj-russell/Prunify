@@ -1,4 +1,10 @@
 {% extends "base.html" %}
     {% block main_content %}
-        <img src="{{ image_url }}" alt="Album cover">
+        <img src="{{ track_image or url_for('static', filename='images/placeholder.png') }}"
+        alt="Album cover">
+        {% if track_title and track_artist %}
+            <p>"{{ track_title }}" - {{ track_artist }}</p>
+        {% else %}
+            <p>Track not found.</p>
+        {% endif %}
     {% endblock %}

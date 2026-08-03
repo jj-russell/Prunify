@@ -34,20 +34,11 @@ def index():
 @app.route("/select_playlist")
 def select_playlist():
     playlists_info = g.user.current_user_playlists()
-    playlists = []
-
-    for playlist in playlists_info["items"]:
-        playlists.append(playlist)
-        name = playlist["name"]
-        playlist_id = playlist["id"]
-
-    print(playlists)
+    playlists = [playlist for playlist in playlists_info["items"]]
 
     return render_template("select_playlist.html", playlists=playlists)
 
 def generate_playlist_array(playlist_id):
-    playlists = g.user.current_user_playlists()
-
     results = g.user.playlist_items(playlist_id, 
                             fields="items(track(id,name,artists(name))),next",
                             limit=100)
@@ -70,15 +61,22 @@ def generate_playlist_array(playlist_id):
 @app.route("/track_swipe/<playlist_id>")
 def track_swipe(playlist_id):
     tracks = generate_playlist_array(playlist_id)
-    
-    print(f"Found {len(tracks)} tracks.")
-    for track in tracks:
-        track = g.user.track(track["id"]) # get track info
-        image_url = track["album"]["images"][0]["url"]
-        print(image_url)
-        break
+    track_image = None
+    track_title = None
+    track_artist = None
 
-    return render_template("track_swipe.html", image_url=image_url)
+    if len(tracks) > 0:
+        for track in tracks:
+            track = g.user.track(track["id"]) # get track info
+            track_title = track["name"]
+            track_artist = track["artists"][0]["name"]
+            track_image = track["album"]["images"][0]["url"]
+            break
+
+    return render_template("track_swipe.html", 
+                           track_image=track_image, 
+                           track_title=track_title, 
+                           track_artist=track_artist)
 
 if __name__ == "__main__":
     app.run(debug=True)

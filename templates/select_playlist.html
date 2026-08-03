@@ -13,7 +13,14 @@
                 <div class="swiper-slide">
                 <div class="playlist-card">
                     <a href="{{ url_for('track_swipe', playlist_id=playlist['id']) }}">
-                        <img src="{{ playlist['images'][0]['url'] }}" />
+                        <img
+                            src="{% if playlist['images'] %}
+                                    {{ playlist['images'][0]['url'] }}
+                                {% else %}
+                                    {{ url_for('static', filename='images/placeholder.png') }}
+                                {% endif %}"
+                            alt="Playlist cover"
+                        />
                     </a>
                     <h3>{{ playlist["name"] }}</h3>
                 </div>
