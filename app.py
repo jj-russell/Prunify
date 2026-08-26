@@ -27,6 +27,11 @@ def load_user():
                                                             scope=scope))
     g.user = sp
 
+def clear_session():
+    for key in list(session.keys()):
+        session.pop(key)
+    session.modified = True
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -61,6 +66,7 @@ def generate_playlist_array(playlist_id):
 @app.route("/track_swipe/<playlist_id>")
 def track_swipe(playlist_id):
     tracks = generate_playlist_array(playlist_id)
+
     track_image = None
     track_title = None
     track_artist = None
