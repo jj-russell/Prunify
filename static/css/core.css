@@ -1,0 +1,47 @@
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+img, video, iframe, figure {
+    max-width: 100%;
+}
+
+body, header {
+    margin: 0;
+}
+
+:root {
+    --accent: #1db954;
+    --bg-primary: #121212;
+    --bg-secondary: #212121;
+    --font-primary: #fff;
+    --font-secondary: #b3b3b3;
+    --font-tertiary: #535353;
+}
+
+body {
+    font-family: "Inter", sans-serif;
+    font-weight: bold;
+    background-color: var(--bg-primary);
+    color: var(--font-primary);
+}
+
+a { color: var(--accent) } 
+a:hover { color: var(--font-primary); }
+
+
+h1 {
+  font-weight: 700;
+}
+
+p {
+  font-weight: 400;
+  color: var(--font-secondary);
+}
+
+main {
+    height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

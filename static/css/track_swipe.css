@@ -1,0 +1,25 @@
+main {
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.song-card, .song-card > img {
+    border-radius: 8px;
+}
+
+.song-card {
+    padding: 1em;
+    background-color: var(--bg-secondary);
+}
+
+.song-card > h1{
+    margin-bottom: 0px;
+}
+
+.song-card > p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
