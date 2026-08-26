@@ -75,7 +75,7 @@ def track_swipe(playlist_id):
         for track in tracks:
             track = g.user.track(track["id"]) # get track info
             track_title = track["name"]
-            track_artist = track["artists"][0]["name"]
+            track_artist = [artist["name"] for artist in track["artists"]]
             track_image = track["album"]["images"][0]["url"]
             break
 
