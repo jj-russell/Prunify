@@ -65,24 +65,23 @@ def select_playlist():
     return render_template("select_playlist.html", playlists=playlists)
 
 def load_playlist(spotify_playlist_id):
-    spotify_user_id = g.user.current_user()['id']
-    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    playlist_name = g.user.playlist(spotify_playlist_id)["name"]
-
     db = get_db()
     playlist_exists = db.execute("""SELECT id
                                     FROM playlists
                                     WHERE spotify_playlist_id = ?""", (spotify_playlist_id,)).fetchone()
 
+    spotify_user_id = g.user.current_user()['id']
     user_id = db.execute("""SELECT id
                             FROM users
                             WHERE spotify_user_id = ?;""", (spotify_user_id,)).fetchone()
     user_id = user_id["id"]
 
+    playlist_name = g.user.playlist(spotify_playlist_id)["name"]
     if not playlist_exists:
         db.execute("""INSERT INTO playlists (user_id, spotify_playlist_id, name) 
                       VALUES (?, ?, ?);""", (user_id, spotify_playlist_id, playlist_name,))
 
+    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     db.execute("""UPDATE playlists
                   SET updated_at = ?
                   WHERE user_id = ?;""", (current_time, user_id))
@@ -158,14 +157,31 @@ def track_swipe(spotify_playlist_id):
     load_playlist(spotify_playlist_id)
     load_tracks(spotify_playlist_id)
 
+    track_name = None
+    track_artists = None
     track_image = None
-    track_title = None
-    track_artist = None
+
+    db = get_db()
+    playlist_id = db.execute("""SELECT id
+                                FROM playlists
+                                WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
+    playlist_id = playlist_id["id"]
+
+    track = db.execute("""SELECT id, spotify_track_id, track_name, track_artists, track_image, position
+                          FROM playlist_tracks
+                          WHERE playlist_id = ?
+                          AND status IS NULL
+                          ORDER BY position
+                          LIMIT 1;""", (playlist_id,)).fetchone()
+
+    track_name = track["track_name"]
+    track_artists = track["track_artists"]
+    track_image = track["track_image"]
 
     return render_template("track_swipe.html", 
                            track_image=track_image, 
-                           track_title=track_title, 
-                           track_artist=track_artist)
+                           track_name=track_name, 
+                           track_artists=track_artists)
 
 @app.route("/test")
 def test():
