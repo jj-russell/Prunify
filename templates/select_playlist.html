@@ -12,7 +12,7 @@
                 {% for playlist in playlists %}
                 <div class="swiper-slide">
                 <div class="playlist-card">
-                    <a href="{{ url_for('track_swipe', playlist_id=playlist['id']) }}">
+                    <a href="{{ url_for('track_swipe', spotify_playlist_id=playlist['id']) }}">
                         <img
                             src="{% if playlist['images'] %}
                                     {{ playlist['images'][0]['url'] }}

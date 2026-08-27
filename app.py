@@ -7,7 +7,7 @@ import spotipy.util as util
 import os
 from dotenv import load_dotenv
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 app.teardown_appcontext(close_db)
@@ -30,7 +30,7 @@ def load_user():
                                                             scope=scope))
 
     spotify_user_id = sp.current_user()['id']
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     db = get_db()
     user_exists = db.execute("""SELECT id
@@ -38,8 +38,8 @@ def load_user():
                             WHERE spotify_user_id = ?""", (spotify_user_id,)).fetchone()
 
     if not user_exists:
-        db.execute("""INSERT INTO users (spotify_user_id, created_at) 
-                      VALUES (?, ?);""", (spotify_user_id, current_time))
+        db.execute("""INSERT INTO users (spotify_user_id) 
+                      VALUES (?);""", (spotify_user_id,))
 
     db.execute("""UPDATE users
                   SET updated_at = ?
@@ -64,36 +64,15 @@ def select_playlist():
 
     return render_template("select_playlist.html", playlists=playlists)
 
-def generate_playlist_array(playlist_id):
-    results = g.user.playlist_items(playlist_id, 
-                            fields="items(track(id,name,artists(name))),next",
-                            limit=100)
-    
-    # limited to 100 tracks per search, so must use a while loop to get more than 100 tracks
-    tracks = []
-    while True:
-        for item in results["items"]:
-            if item["track"] is not None:  # Ignore deleted/unavailable tracks
-                tracks.append(item["track"])
-
-        if results["next"]:
-            results = g.user.next(results)
-        else:
-            break
-
-    return tracks
-     
-
-@app.route("/track_swipe/<playlist_id>")
-def track_swipe(playlist_id):
+def load_playlist(spotify_playlist_id):
     spotify_user_id = g.user.current_user()['id']
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    playlist_name = g.user.playlist(playlist_id)["name"]
+    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    playlist_name = g.user.playlist(spotify_playlist_id)["name"]
 
     db = get_db()
     playlist_exists = db.execute("""SELECT id
                                     FROM playlists
-                                    WHERE spotify_playlist_id = ?""", (playlist_id,)).fetchone()
+                                    WHERE spotify_playlist_id = ?""", (spotify_playlist_id,)).fetchone()
 
     user_id = db.execute("""SELECT id
                             FROM users
@@ -101,26 +80,87 @@ def track_swipe(playlist_id):
     user_id = user_id["id"]
 
     if not playlist_exists:
-        db.execute("""INSERT INTO playlists (user_id, spotify_playlist_id, name, created_at) 
-                VALUES (?, ?, ?, ?);""", (user_id, playlist_id, playlist_name, current_time))
+        db.execute("""INSERT INTO playlists (user_id, spotify_playlist_id, name) 
+                      VALUES (?, ?, ?);""", (user_id, spotify_playlist_id, playlist_name,))
 
     db.execute("""UPDATE playlists
                   SET updated_at = ?
                   WHERE user_id = ?;""", (current_time, user_id))
     db.commit()
 
-    tracks = generate_playlist_array(playlist_id)
+def load_tracks(spotify_playlist_id):
+    db = get_db()
+
+    playlist_id = db.execute("""SELECT id
+                                FROM playlists
+                                WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
+
+    playlist_id = playlist_id["id"]
+
+    playlist_loaded = db.execute("""SELECT loaded_at
+                                    FROM playlists
+                                    WHERE id = ?;""", (playlist_id,)).fetchone()
+    
+    # prevents loading tracks for a playlist into DB multiple times
+    if playlist_loaded["loaded_at"]:
+        return
+
+    tracks = g.user.playlist_items(
+        spotify_playlist_id,
+        additional_types=["track"]
+    )
+
+    all_tracks = tracks["items"]
+
+    while tracks["next"]:
+        tracks = g.user.next(tracks)
+        all_tracks.extend(tracks["items"])
+
+    rows = []
+
+    unavailable_track_count = 0
+    for position, item in enumerate(all_tracks):
+        track = item["track"]
+        if track is None:
+            continue
+        
+        spotify_track_id = track.get("id")
+
+        if spotify_track_id is None:
+            unavailable_track_count += 1
+            continue
+
+        track_name = track["name"]
+        track_artists = ", ".join(artist["name"] for artist in track["artists"])
+        track_image = track["album"]["images"][0]["url"]
+
+        rows.append((
+            playlist_id,
+            spotify_track_id,
+            track_name,
+            track_artists,
+            track_image,
+            position
+        ))
+
+    db.executemany("""INSERT INTO playlist_tracks 
+                      (playlist_id, spotify_track_id, track_name, track_artists, track_image, position)
+                      VALUES (?, ?, ?, ?, ?, ?);""", rows)
+    
+    # finished loading tracks, update playlist table to indicate it has been loaded
+    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    db.execute("""UPDATE playlists
+                  SET loaded_at = ?;""", (current_time,))
+    db.commit()
+
+@app.route("/track_swipe/<spotify_playlist_id>")
+def track_swipe(spotify_playlist_id):
+    load_playlist(spotify_playlist_id)
+    load_tracks(spotify_playlist_id)
+
     track_image = None
     track_title = None
     track_artist = None
-
-    if len(tracks) > 0:
-        for track in tracks:
-            track = g.user.track(track["id"]) # get track info
-            track_title = track["name"]
-            track_artist = [artist["name"] for artist in track["artists"]]
-            track_image = track["album"]["images"][0]["url"]
-            break
 
     return render_template("track_swipe.html", 
                            track_image=track_image, 
