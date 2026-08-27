@@ -29,21 +29,21 @@ def load_user():
                                                             redirect_uri=REDIRECT_URI,
                                                             scope=scope))
 
-    user_id = sp.current_user()['id']
+    spotify_user_id = sp.current_user()['id']
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     db = get_db()
-    user_exists = db.execute("""SELECT spotify_user_id
+    user_exists = db.execute("""SELECT id
                             FROM users
-                            WHERE spotify_user_id = ?""", (user_id,)).fetchone()
+                            WHERE spotify_user_id = ?""", (spotify_user_id,)).fetchone()
 
     if not user_exists:
         db.execute("""INSERT INTO users (spotify_user_id, created_at) 
-                      VALUES (?, ?);""", (user_id, current_time))
+                      VALUES (?, ?);""", (spotify_user_id, current_time))
 
     db.execute("""UPDATE users
                   SET updated_at = ?
-                  WHERE spotify_user_id = ?;""", (current_time, user_id))
+                  WHERE spotify_user_id = ?;""", (current_time, spotify_user_id))
     db.commit()
     
     g.user = sp
@@ -86,8 +86,30 @@ def generate_playlist_array(playlist_id):
 
 @app.route("/track_swipe/<playlist_id>")
 def track_swipe(playlist_id):
-    tracks = generate_playlist_array(playlist_id)
+    spotify_user_id = g.user.current_user()['id']
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    playlist_name = g.user.playlist(playlist_id)["name"]
 
+    db = get_db()
+    playlist_exists = db.execute("""SELECT id
+                                    FROM playlists
+                                    WHERE spotify_playlist_id = ?""", (playlist_id,)).fetchone()
+
+    user_id = db.execute("""SELECT id
+                            FROM users
+                            WHERE spotify_user_id = ?;""", (spotify_user_id,)).fetchone()
+    user_id = user_id["id"]
+
+    if not playlist_exists:
+        db.execute("""INSERT INTO playlists (user_id, spotify_playlist_id, name, created_at) 
+                VALUES (?, ?, ?, ?);""", (user_id, playlist_id, playlist_name, current_time))
+
+    db.execute("""UPDATE playlists
+                  SET updated_at = ?
+                  WHERE user_id = ?;""", (current_time, user_id))
+    db.commit()
+
+    tracks = generate_playlist_array(playlist_id)
     track_image = None
     track_title = None
     track_artist = None
