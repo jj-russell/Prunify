@@ -1,13 +1,16 @@
 from flask import Flask, render_template, session, redirect, request, url_for, g
 from flask_session import Session
+from database import get_db, close_db
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import spotipy.util as util
 import os
 from dotenv import load_dotenv
 from functools import wraps
+from datetime import datetime
 
 app = Flask(__name__)
+app.teardown_appcontext(close_db)
 app.config["SECRET_KEY"] = "super-secret-key"
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -25,6 +28,24 @@ def load_user():
                                                             client_secret=CLIENT_SECRET,
                                                             redirect_uri=REDIRECT_URI,
                                                             scope=scope))
+
+    user_id = sp.current_user()['id']
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    db = get_db()
+    user_exists = db.execute("""SELECT spotify_user_id
+                            FROM users
+                            WHERE spotify_user_id = ?""", (user_id,)).fetchone()
+
+    if not user_exists:
+        db.execute("""INSERT INTO users (spotify_user_id, created_at) 
+                      VALUES (?, ?);""", (user_id, current_time))
+
+    db.execute("""UPDATE users
+                  SET updated_at = ?
+                  WHERE spotify_user_id = ?;""", (current_time, user_id))
+    db.commit()
+    
     g.user = sp
 
 def clear_session():
@@ -84,5 +105,8 @@ def track_swipe(playlist_id):
                            track_title=track_title, 
                            track_artist=track_artist)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route("/test")
+def test():
+    user_id = g.user.current_user()['id']
+
+    return f"{user_id}"
