@@ -16,4 +16,9 @@
                 <p>Tracks not found.</p>
             {% endif %}
         </div>
+
+        <div class="swipe-buttons">
+            <button><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
+            <button><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
+        </div>
     {% endblock %}

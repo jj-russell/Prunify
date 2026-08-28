@@ -183,6 +183,10 @@ def track_swipe(spotify_playlist_id):
                            track_name=track_name, 
                            track_artists=track_artists)
 
+@app.route("/attribution")
+def attribution():
+    return render_template("attribution.html")
+
 @app.route("/test")
 def test():
     user_id = g.user.current_user()['id']

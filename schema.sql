@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE playlists;
 CREATE TABLE IF NOT EXISTS playlists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
@@ -23,16 +22,10 @@ CREATE TABLE IF NOT EXISTS playlists (
     UNIQUE (user_id, spotify_playlist_id)
 );
 
-DROP TABLE playlist_tracks;
 CREATE TABLE IF NOT EXISTS playlist_tracks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-
     playlist_id INTEGER NOT NULL,
-
-    -- Spotify identifiers
     spotify_track_id TEXT NOT NULL,
-
-    -- Track metadata
     track_name TEXT NOT NULL,
     track_artists TEXT NOT NULL,
     track_image TEXT,
