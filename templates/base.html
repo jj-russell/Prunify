@@ -15,7 +15,6 @@
     />
     {% block styles %} {% endblock %}
   </head>
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <body>
     <header>
       <a href="{{ url_for('index') }}">Home</a>
@@ -23,6 +22,7 @@
       <a href="{{ url_for('attribution') }}">Attribution</a>
     </header>
     <main>{% block main_content %} {% endblock %}</main>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     {% block scripts %} {% endblock %}
   </body>
 </html>

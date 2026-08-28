@@ -18,7 +18,11 @@
         </div>
 
         <div class="swipe-buttons">
-            <button><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
-            <button><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
+            <button onclick="deleteSong()"><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
+            <button onclick="keepSong()"><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
         </div>
+    {% endblock %}
+
+    <{% block scripts %}
+        <script src="{{ url_for('static', filename='js/track_swipe.js') }}"></script> 
     {% endblock %}
