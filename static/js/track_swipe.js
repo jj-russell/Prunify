@@ -1,7 +1,7 @@
-function deleteSong() {
+function deleteTrack() {
   console.log("Delete");
 }
 
-function keepSong() {
+function keepTrack() {
   console.log("Keep");
 }

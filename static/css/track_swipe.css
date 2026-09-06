@@ -6,20 +6,20 @@ main {
     justify-content: center;
 }
 
-.song-card, .song-card > img {
+.track-card, .track-card > img {
     border-radius: 8px;
 }
 
-.song-card {
+.track-card {
     padding: 1em;
     background-color: var(--bg-secondary);
 }
 
-.song-card > h1{
+.track-card > h1{
     margin-bottom: 0px;
 }
 
-.song-card > p {
+.track-card > p {
     margin-top: 0px;
     margin-bottom: 0px;
 }

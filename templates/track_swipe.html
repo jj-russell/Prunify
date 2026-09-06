@@ -6,7 +6,7 @@
     />
     {% endblock %}
     {% block main_content %}
-        <div class="song-card">
+        <div class="track-card">
             <img src="{{ track_image or url_for('static', filename='images/placeholder.png') }}"
             alt="Album cover">
             {% if track_name and track_artists %}
@@ -18,8 +18,8 @@
         </div>
 
         <div class="swipe-buttons">
-            <button onclick="deleteSong()"><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
-            <button onclick="keepSong()"><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
+            <button onclick="deleteTrack()"><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
+            <button onclick="keepTrack()"><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
         </div>
     {% endblock %}
 
