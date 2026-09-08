@@ -1,5 +1,6 @@
-from flask import Flask, render_template, session, redirect, request, url_for, g
+from flask import Flask, render_template, session, redirect, request, url_for, g, jsonify
 from flask_session import Session
+from flask_cors import CORS
 from database import get_db, close_db
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
@@ -15,6 +16,7 @@ app.config["SECRET_KEY"] = "super-secret-key"
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+CORS(app)
 
 load_dotenv()
 CLIENT_ID = os.getenv("CLIENT_ID")
@@ -63,6 +65,38 @@ def select_playlist():
     playlists = [playlist for playlist in playlists_info["items"]]
 
     return render_template("select_playlist.html", playlists=playlists)
+
+def get_playlist_db_id(spotify_playlist_id):
+    db = get_db()
+    
+    playlist_id = db.execute("""SELECT id
+                                FROM playlists
+                                WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
+    playlist_id = playlist_id["id"]
+
+    return playlist_id
+
+def playlist_stats(spotify_playlist_id):
+    playlist_id = get_playlist_db_id(spotify_playlist_id)
+
+    db = get_db()
+
+    deleted = db.execute("""SELECT COUNT(*) FROM playlist_tracks
+                            WHERE playlist_id = ?
+                            AND status = 'left';""", (playlist_id,)).fetchone()
+    deleted = deleted[0]
+
+    kept = db.execute("""SELECT COUNT(*) FROM playlist_tracks
+                         WHERE playlist_id = ? 
+                         AND status = 'right';""", (playlist_id,)).fetchone()
+    kept = kept[0]
+
+    unswiped = db.execute("""SELECT COUNT(*) FROM playlist_tracks
+                             WHERE playlist_id = ?
+                             AND status IS NULL;""", (playlist_id,)).fetchone()
+    unswiped = unswiped[0]
+
+    return kept, deleted, unswiped
 
 def load_playlist(spotify_playlist_id):
     db = get_db()
@@ -174,14 +208,53 @@ def track_swipe(spotify_playlist_id):
                           ORDER BY position
                           LIMIT 1;""", (playlist_id,)).fetchone()
 
+    spotify_track_id = track["spotify_track_id"]
     track_name = track["track_name"]
     track_artists = track["track_artists"]
     track_image = track["track_image"]
 
-    return render_template("track_swipe.html", 
+    kept, deleted, unswiped = playlist_stats(spotify_playlist_id)
+    print(kept, deleted, unswiped)
+
+
+    return render_template("track_swipe.html",
+                           spotify_playlist_id=spotify_playlist_id,
+                           spotify_track_id=spotify_track_id,
                            track_image=track_image, 
                            track_name=track_name, 
-                           track_artists=track_artists)
+                           track_artists=track_artists,
+                           kept=kept,
+                           deleted=deleted,
+                           unswiped=unswiped)
+
+def handle_swipes(spotify_playlist_id, spotify_track_id, decision):
+    db = get_db()
+
+    playlist_id = db.execute("""SELECT id
+                                FROM playlists
+                                WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
+    playlist_id = playlist_id["id"]
+
+    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    db.execute("""UPDATE playlist_tracks
+                  SET status = ?,
+                  swiped_at = ?
+                  WHERE playlist_id = ?
+                  AND spotify_track_id = ?;""", (decision, current_time, playlist_id, spotify_track_id))
+    db.commit()
+
+
+@app.route("/track_decision", methods=["POST"])
+def track_decision():
+    data = request.get_json()
+
+    spotify_playlist_id = data["playlist_id"]
+    spotify_track_id = data["track_id"]
+    decision = data["decision"]
+
+    handle_swipes(spotify_playlist_id, spotify_track_id, decision)
+
+    return jsonify({"success": True})
 
 @app.route("/attribution")
 def attribution():

@@ -1,5 +1,5 @@
 main {
-    height: 90vh;
+    height: 95vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -41,4 +41,25 @@ main {
   background-color: var(--bg-secondary);
   padding: 1.5em;
   width: 7em;
+}
+
+.swipe-statistics {
+    display: flex;
+    gap: 1em;
+}
+
+.swipe-statistics i{
+    font-style: normal;
+}
+
+.swipe-statistics p>i{
+    color: red;
+}
+
+.swipe-statistics p+p>i{
+    color: lime;
+}
+
+.swipe-statistics p+p+p>i{
+    color: white;
 }

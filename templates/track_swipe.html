@@ -17,12 +17,18 @@
             {% endif %}
         </div>
 
-        <div class="swipe-buttons">
+        <div class="swipe-buttons" data-track-id="{{spotify_track_id}}" data-playlist-id="{{spotify_playlist_id}}">
             <button onclick="deleteTrack()"><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
             <button onclick="keepTrack()"><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
         </div>
+
+        <div class="swipe-statistics">
+            <p>Deleted: <i>{{deleted}}</i></p>
+            <p>Kept: <i>{{kept}}</i></p>
+            <p>Unswiped: <i>{{unswiped}}</i></p>
+        </div>
     {% endblock %}
 
-    <{% block scripts %}
-        <script src="{{ url_for('static', filename='js/track_swipe.js') }}"></script> 
+    {% block scripts %}
+        <script src="{{ url_for('static', filename='js/track_swipe.js') }}"></script>
     {% endblock %}
