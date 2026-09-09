@@ -216,10 +216,7 @@ def track_swipe(spotify_playlist_id):
 
     track = get_next_unswiped_track(spotify_playlist_id)
     if track is None:
-        spotify_track_id = None
-        track_name = None
-        track_artists = None
-        track_image = None
+        return redirect(url_for("playlist_completed", spotify_playlist_id=spotify_playlist_id))
     else:
         spotify_track_id = track["spotify_track_id"]
         track_name = track["track_name"]
@@ -279,6 +276,10 @@ def track_decision():
     result = handle_swipes(spotify_playlist_id, spotify_track_id, decision)
 
     return jsonify({"success": True, "track": result["next_track"] if result else None, "stats": result["stats"] if result else {"kept": 0, "deleted": 0, "unswiped": 0}})
+
+@app.route("/playlist_completed/<spotify_playlist_id>")
+def playlist_completed(spotify_playlist_id):
+    return render_template("playlist_completed.html")
 
 @app.route("/attribution")
 def attribution():
