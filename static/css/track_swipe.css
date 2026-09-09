@@ -59,3 +59,11 @@ main {
 .swipe-statistics p+p+p>i{
     color: white;
 }
+
+button {
+    background-color: var(--bg-secondary);
+}
+
+button:hover {
+    background-color: var(--font-tertiary);
+}

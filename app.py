@@ -108,22 +108,22 @@ def playlist_stats(spotify_playlist_id):
 
     db = get_db()
 
-    deleted = db.execute("""SELECT COUNT(*) FROM playlist_tracks
+    num_deleted = db.execute("""SELECT COUNT(*) FROM playlist_tracks
                             WHERE playlist_id = ?
                             AND status = "left";""", (playlist_id,)).fetchone()
-    deleted = deleted[0]
+    num_deleted = num_deleted[0]
 
-    kept = db.execute("""SELECT COUNT(*) FROM playlist_tracks
+    num_kept = db.execute("""SELECT COUNT(*) FROM playlist_tracks
                          WHERE playlist_id = ? 
                          AND status = "right";""", (playlist_id,)).fetchone()
-    kept = kept[0]
+    num_kept = num_kept[0]
 
-    unswiped = db.execute("""SELECT COUNT(*) FROM playlist_tracks
+    num_unswiped = db.execute("""SELECT COUNT(*) FROM playlist_tracks
                              WHERE playlist_id = ?
                              AND status IS NULL;""", (playlist_id,)).fetchone()
-    unswiped = unswiped[0]
+    num_unswiped = num_unswiped[0]
 
-    return kept, deleted, unswiped
+    return num_kept, num_deleted, num_unswiped
 
 def load_playlist(spotify_playlist_id):
     db = get_db()
@@ -209,7 +209,7 @@ def load_tracks(spotify_playlist_id):
                   WHERE id = ?;""", (current_time, playlist_id))
     db.commit()
 
-def get_deleted_tracks(spotify_playlist_id):
+def get_tracks(spotify_playlist_id, status):
     db = get_db()
     playlist_id = get_playlist_db_id(spotify_playlist_id)
     if playlist_id is None:
@@ -218,8 +218,8 @@ def get_deleted_tracks(spotify_playlist_id):
     tracks = db.execute("""SELECT spotify_track_id, track_name, track_artists, track_image
                           FROM playlist_tracks
                           WHERE playlist_id = ?
-                          AND status = 'left'
-                          ORDER BY position;""", (playlist_id,)).fetchall()
+                          AND status = ?
+                          ORDER BY position;""", (playlist_id, status)).fetchall()
 
     if tracks is None:
         return None
@@ -232,8 +232,10 @@ def track_swipe(spotify_playlist_id):
 
     track = get_next_unswiped_track(spotify_playlist_id)
     if track is None:
-        return redirect(url_for("playlist_completed",
-                                spotify_playlist_id=spotify_playlist_id))
+        spotify_track_id = None
+        track_name = None
+        track_artists = None
+        track_image = None
     else:
         spotify_track_id = track["spotify_track_id"]
         track_name = track["track_name"]
@@ -299,16 +301,18 @@ def playlist_completed(spotify_playlist_id):
     playlist = g.user.playlist(spotify_playlist_id)
     playlist_name = playlist["name"]
 
-    kept, deleted, _ = playlist_stats(spotify_playlist_id)
+    num_kept, num_deleted, _ = playlist_stats(spotify_playlist_id)
 
-
-    tracks = get_deleted_tracks(spotify_playlist_id)
+    deleted_tracks = get_tracks(spotify_playlist_id, 'left')
+    kept_tracks = get_tracks(spotify_playlist_id, 'right')
 
     return render_template("playlist_completed.html",
-                           tracks=tracks,
+                           spotify_playlist_id=spotify_playlist_id,
+                           deleted_tracks=deleted_tracks,
+                           kept_tracks=kept_tracks,
                            playlist_name=playlist_name,
-                           kept=kept,
-                           deleted=deleted)
+                           num_kept=num_kept,
+                           num_deleted=num_deleted)
 
 @app.route("/attribution")
 def attribution():

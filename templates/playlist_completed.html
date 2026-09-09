@@ -6,33 +6,78 @@
     />
     {% endblock %}
     {% block main_content %}
-    <section>
+    <section class="top">
         <h2>Review your changes for <i>{{ playlist_name }}</i></h2>
+        <a href="{{ url_for('track_swipe', spotify_playlist_id=spotify_playlist_id) }}">
+            <h2>Back to swiping</h2>
+        </a>
+
     </section>
+    <section class="song-action-switcher">
+        <button class="delete">Deleted Songs</button>
+        <button class="keep">Kept Songs</button>
+    </section>
+    <section class="table-section">
+    <div class="table-container">
+        <div class="deleted-tracks">
+            {% if deleted_tracks %}
+            <table>
+                <caption>Deleted Tracks</caption>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Song Title</th>
+                        <th>Artist</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for track in deleted_tracks %}
+                    <tr>
+                        <td><img src="{{track["track_image"]}}" class="thumbnail"></td>
+                        <td><strong>{{track["track_name"]}}</strong></td>
+                        <td>{{track["track_artists"]}}</td>
+                        <td><button>Keep</button></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No deleted tracks found</p>
+            {% endif %}
+        </div>
+
+        <div class="kept-tracks">
+            {% if kept_tracks %}
+            <table>
+                <caption>Kept Tracks</caption>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Song Title</th>
+                        <th>Artist</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for track in kept_tracks %}
+                    <tr>
+                        <td><img src="{{track["track_image"]}}" class="thumbnail"></td>
+                        <td><strong>{{track["track_name"]}}</strong></td>
+                        <td>{{track["track_artists"]}}</td>
+                        <td><button>Delete</button></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No kept tracks found</p>
+            {% endif %}
+        </div>
+    </div>
+    </section>
+    <script src="{{ url_for('static', filename='js/playlist_completed.js') }}"></script>
     <section>
-    <table>
-        {% if tracks %}
-            <thead>
-                <tr>
-                    <th>Thumbnail</th>
-                    <th>Song Title</th>
-                    <th>Artist</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for track in tracks %}
-                <tr>
-                    <td><img src="{{track["track_image"]}}" alt="Blinding Lights" class="thumbnail"></td>
-                    <td><strong>{{track["track_name"]}}</strong></td>
-                    <td>{{track["track_artists"]}}</td>
-                    <td><button class="delete-btn" onclick="this.closest('tr').remove()">Delete</button></td>
-                </tr>
-            {% endfor %}
-        {% else %}
-            <p>No deleted tracks found</p>
-        {% endif %}
-        </tbody>
-    </table>
+        <button>Apply Changes</button>
     </section>
     {% endblock %}

@@ -13,8 +13,6 @@ const statsEls = {
 function updateTrack(track) {
   if (!track) {
     if (trackName) trackName.textContent = "No tracks left";
-    if (trackArtists)
-      trackArtists.textContent = "You’ve finished this playlist.";
     if (trackImage) trackImage.src = "/static/images/placeholder.png";
     if (swipeButtons) swipeButtons.setAttribute("data-track-id", "");
     return;

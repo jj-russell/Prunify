@@ -12,11 +12,14 @@ body, header {
 
 :root {
     --accent: #1db954;
+    --dark-accent: #199645;
     --bg-primary: #121212;
     --bg-secondary: #212121;
     --font-primary: #fff;
     --font-secondary: #b3b3b3;
     --font-tertiary: #535353;
+    --red: #e74c3c;
+    --dark-red: #c0392b;
 }
 
 body {
@@ -49,4 +52,17 @@ main {
 i{
     font-style: normal;
     color: var(--accent);
+}
+
+button {
+  background-color: var(--accent);
+  color: var(--font-primary);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--dark-accent);
 }

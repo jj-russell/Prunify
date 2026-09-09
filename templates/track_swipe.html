@@ -27,6 +27,7 @@
             <p>Kept: <i>{{kept}}</i></p>
             <p>Unswiped: <i>{{unswiped}}</i></p>
         </div>
+        <a href="{{ url_for('playlist_completed', spotify_playlist_id=spotify_playlist_id)}}">Apply Changes</a>
     {% endblock %}
 
     {% block scripts %}
