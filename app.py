@@ -72,12 +72,39 @@ def get_playlist_db_id(spotify_playlist_id):
     playlist_id = db.execute("""SELECT id
                                 FROM playlists
                                 WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
-    playlist_id = playlist_id["id"]
+    if playlist_id is None:
+        return None
+    return playlist_id["id"]
 
-    return playlist_id
+def get_next_unswiped_track(spotify_playlist_id):
+    db = get_db()
+    playlist_id = get_playlist_db_id(spotify_playlist_id)
+    if playlist_id is None:
+        return None
+
+    track = db.execute("""SELECT id, spotify_track_id, track_name, track_artists, track_image, position
+                          FROM playlist_tracks
+                          WHERE playlist_id = ?
+                          AND status IS NULL
+                          ORDER BY position
+                          LIMIT 1;""", (playlist_id,)).fetchone()
+    if track is None:
+        return None
+
+    return {
+        "id": track["id"],
+        "spotify_track_id": track["spotify_track_id"],
+        "track_name": track["track_name"],
+        "track_artists": track["track_artists"],
+        "track_image": track["track_image"],
+        "position": track["position"],
+    }
+
 
 def playlist_stats(spotify_playlist_id):
     playlist_id = get_playlist_db_id(spotify_playlist_id)
+    if playlist_id is None:
+        return 0, 0, 0
 
     db = get_db()
 
@@ -124,18 +151,14 @@ def load_playlist(spotify_playlist_id):
 def load_tracks(spotify_playlist_id):
     db = get_db()
 
-    playlist_id = db.execute("""SELECT id
+    playlist = db.execute("""SELECT id, loaded_at
                                 FROM playlists
                                 WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
+    if playlist is None:
+        return
 
-    playlist_id = playlist_id["id"]
-
-    playlist_loaded = db.execute("""SELECT loaded_at
-                                    FROM playlists
-                                    WHERE id = ?;""", (playlist_id,)).fetchone()
-    
-    # prevents loading tracks for a playlist into DB multiple times
-    if playlist_loaded["loaded_at"]:
+    playlist_id = playlist["id"]
+    if playlist["loaded_at"]:
         return
 
     tracks = g.user.playlist_items(
@@ -180,10 +203,10 @@ def load_tracks(spotify_playlist_id):
                       (playlist_id, spotify_track_id, track_name, track_artists, track_image, position)
                       VALUES (?, ?, ?, ?, ?, ?);""", rows)
     
-    # finished loading tracks, update playlist table to indicate it has been loaded
     current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     db.execute("""UPDATE playlists
-                  SET loaded_at = ?;""", (current_time,))
+                  SET loaded_at = ?
+                  WHERE id = ?;""", (current_time, playlist_id))
     db.commit()
 
 @app.route("/track_swipe/<spotify_playlist_id>")
@@ -191,31 +214,19 @@ def track_swipe(spotify_playlist_id):
     load_playlist(spotify_playlist_id)
     load_tracks(spotify_playlist_id)
 
-    track_name = None
-    track_artists = None
-    track_image = None
-
-    db = get_db()
-    playlist_id = db.execute("""SELECT id
-                                FROM playlists
-                                WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
-    playlist_id = playlist_id["id"]
-
-    track = db.execute("""SELECT id, spotify_track_id, track_name, track_artists, track_image, position
-                          FROM playlist_tracks
-                          WHERE playlist_id = ?
-                          AND status IS NULL
-                          ORDER BY position
-                          LIMIT 1;""", (playlist_id,)).fetchone()
-
-    spotify_track_id = track["spotify_track_id"]
-    track_name = track["track_name"]
-    track_artists = track["track_artists"]
-    track_image = track["track_image"]
+    track = get_next_unswiped_track(spotify_playlist_id)
+    if track is None:
+        spotify_track_id = None
+        track_name = None
+        track_artists = None
+        track_image = None
+    else:
+        spotify_track_id = track["spotify_track_id"]
+        track_name = track["track_name"]
+        track_artists = track["track_artists"]
+        track_image = track["track_image"]
 
     kept, deleted, unswiped = playlist_stats(spotify_playlist_id)
-    print(kept, deleted, unswiped)
-
 
     return render_template("track_swipe.html",
                            spotify_playlist_id=spotify_playlist_id,
@@ -233,6 +244,8 @@ def handle_swipes(spotify_playlist_id, spotify_track_id, decision):
     playlist_id = db.execute("""SELECT id
                                 FROM playlists
                                 WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,)).fetchone()
+    if playlist_id is None:
+        return None
     playlist_id = playlist_id["id"]
 
     current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -243,6 +256,17 @@ def handle_swipes(spotify_playlist_id, spotify_track_id, decision):
                   AND spotify_track_id = ?;""", (decision, current_time, playlist_id, spotify_track_id))
     db.commit()
 
+    next_track = get_next_unswiped_track(spotify_playlist_id)
+    stats = playlist_stats(spotify_playlist_id)
+    return {
+        "next_track": next_track,
+        "stats": {
+            "kept": stats[0],
+            "deleted": stats[1],
+            "unswiped": stats[2],
+        },
+    }
+
 
 @app.route("/track_decision", methods=["POST"])
 def track_decision():
@@ -252,9 +276,9 @@ def track_decision():
     spotify_track_id = data["track_id"]
     decision = data["decision"]
 
-    handle_swipes(spotify_playlist_id, spotify_track_id, decision)
+    result = handle_swipes(spotify_playlist_id, spotify_track_id, decision)
 
-    return jsonify({"success": True})
+    return jsonify({"success": True, "track": result["next_track"] if result else None, "stats": result["stats"] if result else {"kept": 0, "deleted": 0, "unswiped": 0}})
 
 @app.route("/attribution")
 def attribution():
