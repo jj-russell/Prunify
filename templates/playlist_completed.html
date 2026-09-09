@@ -6,5 +6,33 @@
     />
     {% endblock %}
     {% block main_content %}
-        <p>hi</p>
+    <section>
+        <h2>Review your changes for <i>{{ playlist_name }}</i></h2>
+    </section>
+    <section>
+    <table>
+        {% if tracks %}
+            <thead>
+                <tr>
+                    <th>Thumbnail</th>
+                    <th>Song Title</th>
+                    <th>Artist</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for track in tracks %}
+                <tr>
+                    <td><img src="{{track["track_image"]}}" alt="Blinding Lights" class="thumbnail"></td>
+                    <td><strong>{{track["track_name"]}}</strong></td>
+                    <td>{{track["track_artists"]}}</td>
+                    <td><button class="delete-btn" onclick="this.closest('tr').remove()">Delete</button></td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <p>No deleted tracks found</p>
+        {% endif %}
+        </tbody>
+    </table>
+    </section>
     {% endblock %}

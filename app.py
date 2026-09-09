@@ -31,7 +31,7 @@ def load_user():
                                                             redirect_uri=REDIRECT_URI,
                                                             scope=scope))
 
-    spotify_user_id = sp.current_user()['id']
+    spotify_user_id = sp.current_user()["id"]
     current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     db = get_db()
@@ -110,12 +110,12 @@ def playlist_stats(spotify_playlist_id):
 
     deleted = db.execute("""SELECT COUNT(*) FROM playlist_tracks
                             WHERE playlist_id = ?
-                            AND status = 'left';""", (playlist_id,)).fetchone()
+                            AND status = "left";""", (playlist_id,)).fetchone()
     deleted = deleted[0]
 
     kept = db.execute("""SELECT COUNT(*) FROM playlist_tracks
                          WHERE playlist_id = ? 
-                         AND status = 'right';""", (playlist_id,)).fetchone()
+                         AND status = "right";""", (playlist_id,)).fetchone()
     kept = kept[0]
 
     unswiped = db.execute("""SELECT COUNT(*) FROM playlist_tracks
@@ -131,7 +131,7 @@ def load_playlist(spotify_playlist_id):
                                     FROM playlists
                                     WHERE spotify_playlist_id = ?""", (spotify_playlist_id,)).fetchone()
 
-    spotify_user_id = g.user.current_user()['id']
+    spotify_user_id = g.user.current_user()["id"]
     user_id = db.execute("""SELECT id
                             FROM users
                             WHERE spotify_user_id = ?;""", (spotify_user_id,)).fetchone()
@@ -209,6 +209,22 @@ def load_tracks(spotify_playlist_id):
                   WHERE id = ?;""", (current_time, playlist_id))
     db.commit()
 
+def get_deleted_tracks(spotify_playlist_id):
+    db = get_db()
+    playlist_id = get_playlist_db_id(spotify_playlist_id)
+    if playlist_id is None:
+        return None
+
+    tracks = db.execute("""SELECT spotify_track_id, track_name, track_artists, track_image
+                          FROM playlist_tracks
+                          WHERE playlist_id = ?
+                          AND status = 'left'
+                          ORDER BY position;""", (playlist_id,)).fetchall()
+
+    if tracks is None:
+        return None
+    return tracks
+
 @app.route("/track_swipe/<spotify_playlist_id>")
 def track_swipe(spotify_playlist_id):
     load_playlist(spotify_playlist_id)
@@ -216,7 +232,8 @@ def track_swipe(spotify_playlist_id):
 
     track = get_next_unswiped_track(spotify_playlist_id)
     if track is None:
-        return redirect(url_for("playlist_completed", spotify_playlist_id=spotify_playlist_id))
+        return redirect(url_for("playlist_completed",
+                                spotify_playlist_id=spotify_playlist_id))
     else:
         spotify_track_id = track["spotify_track_id"]
         track_name = track["track_name"]
@@ -279,7 +296,19 @@ def track_decision():
 
 @app.route("/playlist_completed/<spotify_playlist_id>")
 def playlist_completed(spotify_playlist_id):
-    return render_template("playlist_completed.html")
+    playlist = g.user.playlist(spotify_playlist_id)
+    playlist_name = playlist["name"]
+
+    kept, deleted, _ = playlist_stats(spotify_playlist_id)
+
+
+    tracks = get_deleted_tracks(spotify_playlist_id)
+
+    return render_template("playlist_completed.html",
+                           tracks=tracks,
+                           playlist_name=playlist_name,
+                           kept=kept,
+                           deleted=deleted)
 
 @app.route("/attribution")
 def attribution():
@@ -287,6 +316,4 @@ def attribution():
 
 @app.route("/test")
 def test():
-    user_id = g.user.current_user()['id']
-
-    return f"{user_id}"
+    return "test"
