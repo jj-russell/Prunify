@@ -1,37 +1,52 @@
-*, *:before, *:after {
-    box-sizing: border-box;
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
 }
 
-img, video, iframe, figure {
-    max-width: 100%;
+img,
+video,
+iframe,
+figure {
+  max-width: 100%;
 }
 
-body, header {
-    margin: 0;
+body,
+header {
+  margin: 0;
+}
+
+header {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
 }
 
 :root {
-    --accent: #1db954;
-    --dark-accent: #199645;
-    --bg-primary: #121212;
-    --bg-secondary: #212121;
-    --font-primary: #fff;
-    --font-secondary: #b3b3b3;
-    --font-tertiary: #535353;
-    --red: #e74c3c;
-    --dark-red: #c0392b;
+  --green: #1db954;
+  --dark-green: #199645;
+  --bg-primary: #121212;
+  --bg-secondary: #212121;
+  --font-primary: #fff;
+  --font-secondary: #b3b3b3;
+  --font-tertiary: #535353;
+  --red: #e74c3c;
+  --dark-red: #c0392b;
 }
 
 body {
-    font-family: "Inter", sans-serif;
-    font-weight: bold;
-    background-color: var(--bg-primary);
-    color: var(--font-primary);
+  font-family: "Inter", sans-serif;
+  font-weight: bold;
+  background-color: var(--bg-primary);
+  color: var(--font-primary);
 }
 
-a { color: var(--accent) } 
-a:hover { color: var(--font-primary); }
-
+a {
+  color: var(--green);
+}
+a:hover {
+  color: var(--font-primary);
+}
 
 h1 {
   font-weight: 700;
@@ -43,19 +58,19 @@ p {
 }
 
 main {
-    height: 90vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-i{
-    font-style: normal;
-    color: var(--accent);
+i {
+  font-style: normal;
+  color: var(--green);
 }
 
 button {
-  background-color: var(--accent);
+  background-color: var(--font-tertiary);
   color: var(--font-primary);
   border: none;
   padding: 6px 12px;
@@ -64,5 +79,5 @@ button {
 }
 
 button:hover {
-  background-color: var(--dark-accent);
+  background-color: var(--font-secondary);
 }

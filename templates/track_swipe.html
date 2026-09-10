@@ -13,14 +13,16 @@
                 <h1>{{ track_name }}</h1>
                 <p>{{ track_artists }}</p>
             {% else %}
-                <p>Tracks not found.</p>
+                <p>All songs have been swiped on.</p>
             {% endif %}
         </div>
 
+        {% if track_name and track_artists %}
         <div class="swipe-buttons" data-track-id="{{spotify_track_id}}" data-playlist-id="{{spotify_playlist_id}}">
             <button onclick="deleteTrack()"><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
             <button onclick="keepTrack()"><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
         </div>
+        {% endif %}
 
         <div class="swipe-statistics">
             <p>Deleted: <i>{{deleted}}</i></p>

@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const deleteBtn = document.querySelector(".song-action-switcher .delete");
-  const keepBtn = document.querySelector(".song-action-switcher .keep");
+  const deleteBtn = document.querySelector(".track-action-switcher .delete");
+  const keepBtn = document.querySelector(".track-action-switcher .keep");
   const deletedContainer = document.querySelector(".deleted-tracks");
   const keptContainer = document.querySelector(".kept-tracks");
 

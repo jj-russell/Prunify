@@ -1,36 +1,36 @@
 .swiper {
-    width: 90%;
-    padding: 30px 0;
+  width: 90%;
+  padding: 30px 0;
 }
 
 .playlist-card {
-    text-align: center;
+  text-align: center;
 }
 
 .playlist-card img {
-    width: 250px;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 8px;
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .playlist-card h3 {
-    margin-top: 12px;
+  margin-top: 12px;
 }
 
 .swiper-slide {
-    transition: transform 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .swiper-slide-active {
-    transform: scale(1.08);
+  transform: scale(1.08);
 }
 
 .swiper-slide:not(.swiper-slide-active) {
-    opacity: 0.6;
+  opacity: 0.6;
 }
 
 .swiper-button-next,
 .swiper-button-prev {
-    color: var(--accent);
+  color: var(--green);
 }

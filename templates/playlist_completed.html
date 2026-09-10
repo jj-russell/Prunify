@@ -13,20 +13,19 @@
         </a>
 
     </section>
-    <section class="song-action-switcher">
-        <button class="delete">Deleted Songs</button>
-        <button class="keep">Kept Songs</button>
+    <section class="track-action-switcher">
+        <button class="delete">Deleted Tracks</button>
+        <button class="keep">Kept Tracks</button>
     </section>
     <section class="table-section">
     <div class="table-container">
         <div class="deleted-tracks">
             {% if deleted_tracks %}
             <table>
-                <caption>Deleted Tracks</caption>
                 <thead>
                     <tr>
                         <th>Image</th>
-                        <th>Song Title</th>
+                        <th>Track Title</th>
                         <th>Artist</th>
                         <th>Action</th>
                     </tr>
@@ -37,7 +36,7 @@
                         <td><img src="{{track["track_image"]}}" class="thumbnail"></td>
                         <td><strong>{{track["track_name"]}}</strong></td>
                         <td>{{track["track_artists"]}}</td>
-                        <td><button>Keep</button></td>
+                        <td><button>Undo</button></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -50,11 +49,10 @@
         <div class="kept-tracks">
             {% if kept_tracks %}
             <table>
-                <caption>Kept Tracks</caption>
                 <thead>
                     <tr>
                         <th>Image</th>
-                        <th>Song Title</th>
+                        <th>Track Title</th>
                         <th>Artist</th>
                         <th>Action</th>
                     </tr>
@@ -65,7 +63,7 @@
                         <td><img src="{{track["track_image"]}}" class="thumbnail"></td>
                         <td><strong>{{track["track_name"]}}</strong></td>
                         <td>{{track["track_artists"]}}</td>
-                        <td><button>Delete</button></td>
+                        <td><button>Undo</button></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -77,7 +75,8 @@
     </div>
     </section>
     <script src="{{ url_for('static', filename='js/playlist_completed.js') }}"></script>
-    <section>
+    <section class="decision">
         <button>Apply Changes</button>
+        <button>Discard Changes</button>
     </section>
     {% endblock %}
