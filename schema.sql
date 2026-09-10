@@ -33,9 +33,9 @@ CREATE TABLE IF NOT EXISTS playlist_tracks (
     -- Position in the Spotify playlist when the snapshot was created
     position INTEGER NOT NULL,
 
-    -- NULL = not swiped, 'left' = delete, 'right' = keep
-    status TEXT CHECK (status IN ('left', 'right') OR status IS NULL),
-
+    -- NULL = not swiped
+    status TEXT CHECK (status IN ('delete', 'keep') OR status IS NULL),
+    confirmed INTEGER DEFAULT 0,
     swiped_at DATETIME,
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -110,12 +110,12 @@ def playlist_stats(spotify_playlist_id):
 
     num_deleted = db.execute("""SELECT COUNT(*) FROM playlist_tracks
                             WHERE playlist_id = ?
-                            AND status = "left";""", (playlist_id,)).fetchone()
+                            AND status = "delete";""", (playlist_id,)).fetchone()
     num_deleted = num_deleted[0]
 
     num_kept = db.execute("""SELECT COUNT(*) FROM playlist_tracks
                          WHERE playlist_id = ? 
-                         AND status = "right";""", (playlist_id,)).fetchone()
+                         AND status = "keep";""", (playlist_id,)).fetchone()
     num_kept = num_kept[0]
 
     num_unswiped = db.execute("""SELECT COUNT(*) FROM playlist_tracks
@@ -303,8 +303,8 @@ def playlist_completed(spotify_playlist_id):
 
     num_kept, num_deleted, _ = playlist_stats(spotify_playlist_id)
 
-    deleted_tracks = get_tracks(spotify_playlist_id, 'left')
-    kept_tracks = get_tracks(spotify_playlist_id, 'right')
+    deleted_tracks = get_tracks(spotify_playlist_id, 'delete')
+    kept_tracks = get_tracks(spotify_playlist_id, 'keep')
 
     return render_template("playlist_completed.html",
                            spotify_playlist_id=spotify_playlist_id,

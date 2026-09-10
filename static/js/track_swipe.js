@@ -35,11 +35,11 @@ function updateStats(stats) {
 }
 
 function deleteTrack() {
-  sendDecision("left");
+  sendDecision("delete");
 }
 
 function keepTrack() {
-  sendDecision("right");
+  sendDecision("keep");
 }
 
 function sendDecision(decision) {
