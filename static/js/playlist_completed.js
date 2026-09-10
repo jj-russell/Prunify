@@ -54,15 +54,83 @@ const keptTrackIds = [
   ...document.querySelectorAll(".kept-tracks tr[data-track-id]"),
 ].map((tr) => tr.dataset.trackId);
 
+let pendingAction = null;
+
+function showConfirmModal(action) {
+  const modal = document.getElementById("confirmModal");
+  const title = document.getElementById("confirmModalTitle");
+  const text = document.getElementById("confirmModalText");
+  const confirmButton = document.getElementById("confirmDecision");
+
+  if (!modal || !title || !text || !confirmButton) return;
+
+  pendingAction = action;
+
+  if (action === "apply") {
+    title.textContent = "Apply changes?";
+    text.textContent =
+      "This will finalize the changes you made to this playlist.";
+    confirmButton.textContent = "Apply changes";
+    confirmButton.classList.remove("discard");
+    confirmButton.classList.add("apply");
+  } else {
+    title.textContent = "Discard changes?";
+    text.textContent =
+      "This will reset the songs in the current selection and undo your changes.";
+    confirmButton.textContent = "Discard changes";
+    confirmButton.classList.remove("apply");
+    confirmButton.classList.add("discard");
+  }
+
+  modal.classList.remove("hidden");
+}
+
+function closeConfirmModal() {
+  const modal = document.getElementById("confirmModal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+  pendingAction = null;
+}
+
 function applyChanges() {
   const activeTab = getActiveTab();
-  sendDecision(activeTab, "apply");
+  if (!activeTab) return;
+  showConfirmModal("apply");
 }
 
 function discardChanges() {
   const activeTab = getActiveTab();
-  sendDecision(activeTab, "discard");
+  if (!activeTab) return;
+  showConfirmModal("discard");
 }
+
+function bindModalControls() {
+  const confirmButton = document.getElementById("confirmDecision");
+  const cancelButton = document.getElementById("cancelConfirmation");
+  const closeBackdrop = document.querySelector(".confirm-modal-backdrop");
+
+  if (confirmButton) {
+    confirmButton.addEventListener("click", function () {
+      const action = pendingAction;
+      closeConfirmModal();
+      const activeTab = getActiveTab();
+      if (action && activeTab) {
+        sendDecision(activeTab, action);
+      }
+    });
+  }
+
+  if (cancelButton) {
+    cancelButton.addEventListener("click", closeConfirmModal);
+  }
+
+  if (closeBackdrop) {
+    closeBackdrop.addEventListener("click", closeConfirmModal);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", bindModalControls);
 
 const tableContainer = document.querySelector(".table-container");
 const spotify_playlist_id = tableContainer.getAttribute("data-playlist-id");
@@ -98,6 +166,7 @@ function sendDecision(decision, action) {
     .then((data) => {
       if (data && data.success) {
         console.log("Decision saved successfully", data);
+        window.location.reload();
       }
     })
     .catch((error) => {

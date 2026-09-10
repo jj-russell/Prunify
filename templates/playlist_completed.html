@@ -79,4 +79,16 @@
         <button onclick="discardChanges()">Discard Changes</button>
         <button onclick="applyChanges()">Apply Changes</button>
     </section>
+
+    <div id="confirmModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+        <div class="confirm-modal-backdrop" data-close="true"></div>
+        <div class="confirm-modal-card">
+            <h3 id="confirmModalTitle">Confirm action</h3>
+            <p id="confirmModalText">Are you sure?</p>
+            <div class="confirm-modal-actions">
+                <button type="button" class="cancel-btn" id="cancelConfirmation">Cancel</button>
+                <button type="button" class="confirm-btn" id="confirmDecision">Confirm</button>
+            </div>
+        </div>
+    </div>
     {% endblock %}

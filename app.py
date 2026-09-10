@@ -315,7 +315,7 @@ def playlist_completed(spotify_playlist_id):
                            num_deleted=num_deleted)
 
 def apply_changes(spotify_playlist_id, track_ids):
-    pass
+    print(spotify_playlist_id)
 
 def discard_changes(spotify_playlist_id, track_ids):
     db = get_db()
