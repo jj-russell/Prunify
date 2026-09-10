@@ -156,22 +156,22 @@ th {
 }
 
 .delete,
-.decision button + button {
+.decision button {
   background-color: var(--red);
 }
 
 .delete:hover,
-.decision button + button:hover {
+.decision button:hover {
   background-color: var(--dark-red);
 }
 
 .keep,
-.decision button {
+.decision button+button {
   background-color: var(--green);
 }
 
 .keep:hover,
-.decision button:hover {
+.decision button+button:hover {
   background-color: var(--dark-green);
 }
 

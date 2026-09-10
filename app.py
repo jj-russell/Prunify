@@ -314,6 +314,38 @@ def playlist_completed(spotify_playlist_id):
                            num_kept=num_kept,
                            num_deleted=num_deleted)
 
+def apply_changes(spotify_playlist_id, track_ids):
+    pass
+
+def discard_changes(spotify_playlist_id, track_ids):
+    db = get_db()
+
+    playlist_id = get_playlist_db_id(spotify_playlist_id)
+
+    for track_id in track_ids:
+        db.execute("""UPDATE playlist_tracks
+                      SET status = NULL,
+                          swiped_at = NULL
+                      WHERE playlist_id = ?
+                      AND spotify_track_id = ?""", (playlist_id, track_id))
+        db.commit()
+        
+
+@app.route("/handle_playlist_changes", methods=["POST"])
+def handle_playlist_changes():
+    data = request.get_json()
+    spotify_playlist_id = data["playlist_id"]
+    track_ids = data["track_ids"]
+    action = data["action"]
+
+    if action == "apply":
+        apply_changes(spotify_playlist_id, track_ids)
+    elif action == "discard":
+        discard_changes(spotify_playlist_id, track_ids)
+
+    return jsonify({"success": True})
+
+
 @app.route("/attribution")
 def attribution():
     return render_template("attribution.html")
