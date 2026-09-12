@@ -39,6 +39,8 @@ body {
   font-weight: bold;
   background-color: var(--bg-primary);
   color: var(--font-primary);
+  font-size: 16px;
+  font-weight: bold;
 }
 
 a {
@@ -70,14 +72,16 @@ i {
 }
 
 button {
-  background-color: var(--font-tertiary);
+  background-color: var(--bg-secondary);
   color: var(--font-primary);
   border: none;
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 button:hover {
-  background-color: var(--font-secondary);
+  background-color: var(--font-tertiary);
 }

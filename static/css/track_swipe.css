@@ -1,27 +1,69 @@
 main {
-    height: 95vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.track-card, .track-card > img {
-    border-radius: 8px;
+.track-card,
+.track-card > img {
+  border-radius: 8px;
 }
 
 .track-card {
-    padding: 1em;
-    background-color: var(--bg-secondary);
+  padding: 1em;
+  background-color: var(--bg-secondary);
+  width: min(60vw, 300px);
 }
 
-.track-card > h1{
-    margin-bottom: 0px;
+.track-card > img {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  margin: 0 auto;
+}
+
+.track-title-scroll {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.track-title {
+  display: inline-block;
+  margin: 0;
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+.track-title-scroll.marquee-active .track-title {
+  animation: track-title-marquee 25s ease-in-out infinite;
+}
+
+@keyframes track-title-marquee {
+  0%,
+  12% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(calc(-1 * var(--scroll-distance, 0px)));
+  }
+  88%,
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.track-card > h1 {
+  margin-bottom: 0px;
 }
 
 .track-card > p {
-    margin-top: 0px;
-    margin-bottom: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .swipe-buttons {
@@ -44,26 +86,26 @@ main {
 }
 
 .swipe-statistics {
-    display: flex;
-    gap: 1em;
+  display: flex;
+  gap: 1em;
 }
 
-.swipe-statistics p>i{
-    color: red;
+.swipe-statistics p > i {
+  color: red;
 }
 
-.swipe-statistics p+p>i{
-    color: lime;
+.swipe-statistics p + p > i {
+  color: lime;
 }
 
-.swipe-statistics p+p+p>i{
-    color: white;
+.swipe-statistics p + p + p > i {
+  color: white;
 }
 
 button {
-    background-color: var(--bg-secondary);
+  background-color: var(--bg-secondary);
 }
 
 button:hover {
-    background-color: var(--font-tertiary);
+  background-color: var(--font-tertiary);
 }

@@ -23,3 +23,7 @@ const swiper = new Swiper('.swiper', {
         }
     }
 });
+
+function deletePlaylist(spotify_playlist_id) {
+    console.log("hi")
+}

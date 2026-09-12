@@ -364,13 +364,15 @@ def playlist_completed(spotify_playlist_id):
                            num_kept=num_kept,
                            num_deleted=num_deleted)
 
-def apply_changes(spotify_playlist_id, track_ids, decision):
+def apply_changes(spotify_playlist_id, track_ids):
     db = get_db()
     playlist_id = get_playlist_db_id(spotify_playlist_id)
 
     deleted_track_ids = track_ids[0]
     kept_track_ids = track_ids[1]
 
+    if deleted_track_ids:
+        g.user.playlist_remove_all_occurrences_of_items(spotify_playlist_id, deleted_track_ids)
     for track_id in deleted_track_ids:
         db.execute("""UPDATE playlist_tracks
                         SET confirmed = 1
@@ -404,15 +406,17 @@ def handle_playlist_changes():
     spotify_playlist_id = data["playlist_id"]
     track_ids = data["track_ids"]
     action = data["action"]
-    decision = data["decision"]
 
     if action == "apply":
-        apply_changes(spotify_playlist_id, track_ids, decision)
+        apply_changes(spotify_playlist_id, track_ids)
     elif action == "discard":
         discard_changes(spotify_playlist_id, track_ids)
 
     return jsonify({"success": True})
 
+@app.route("/playlist_history/<spotify_playlist_id>")
+def playlist_history(spotify_playlist_id):
+    return render_template("playlist_history.html")
 
 @app.route("/attribution")
 def attribution():

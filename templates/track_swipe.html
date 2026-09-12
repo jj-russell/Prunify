@@ -1,37 +1,57 @@
-{% extends "base.html" %}
-    {% block styles %}
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='css/track_swipe.css') }}"
+{% extends "base.html" %} {% block styles %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/track_swipe.css') }}"
+/>
+{% endblock %} {% block main_content %}
+<div class="track-card">
+  <img
+    src="{{ track_image or url_for('static', filename='images/placeholder.png') }}"
+    alt="Album cover"
+  />
+  {% if track_name %}
+  <div class="track-title-scroll">
+    <h1 class="track-title">{{ track_name }}</h1>
+  </div>
+  {% if track_artists %}
+  <p class="track-artist">{{ track_artists }}</p>
+  {% endif %} {% else %}
+  <div class="track-title-scroll">
+    <h1 class="track-title">No tracks left</h1>
+  </div>
+  {% endif %}
+</div>
+
+{% if track_name and track_artists %}
+<div
+  class="swipe-buttons"
+  data-track-id="{{spotify_track_id}}"
+  data-playlist-id="{{spotify_playlist_id}}"
+>
+  <button onclick="deleteTrack()">
+    <img
+      src="{{ url_for('static', filename='/images/cross.svg') }}"
+      alt="Cross icon"
     />
-    {% endblock %}
-    {% block main_content %}
-        <div class="track-card">
-            <img src="{{ track_image or url_for('static', filename='images/placeholder.png') }}"
-            alt="Album cover">
-            {% if track_name and track_artists %}
-                <h1>{{ track_name }}</h1>
-                <p>{{ track_artists }}</p>
-            {% else %}
-                <p>All songs have been swiped on.</p>
-            {% endif %}
-        </div>
+  </button>
+  <button onclick="keepTrack()">
+    <img
+      src="{{ url_for('static', filename='/images/heart.svg') }}"
+      alt="Heart icon"
+    />
+  </button>
+</div>
+{% endif %}
 
-        {% if track_name and track_artists %}
-        <div class="swipe-buttons" data-track-id="{{spotify_track_id}}" data-playlist-id="{{spotify_playlist_id}}">
-            <button onclick="deleteTrack()"><img src="{{ url_for('static', filename='/images/cross.svg') }}" alt="Cross icon"/></button>
-            <button onclick="keepTrack()"><img src="{{ url_for('static', filename='/images/heart.svg') }}" alt="Heart icon"/></button>
-        </div>
-        {% endif %}
-
-        <div class="swipe-statistics">
-            <p>Deleted: <i>{{deleted}}</i></p>
-            <p>Kept: <i>{{kept}}</i></p>
-            <p>Unswiped: <i>{{unswiped}}</i></p>
-        </div>
-        <a href="{{ url_for('playlist_completed', spotify_playlist_id=spotify_playlist_id)}}">Apply Changes</a>
-    {% endblock %}
-
-    {% block scripts %}
-        <script src="{{ url_for('static', filename='js/track_swipe.js') }}"></script>
-    {% endblock %}
+<div class="swipe-statistics">
+  <p>Deleted: <i>{{deleted}}</i></p>
+  <p>Kept: <i>{{kept}}</i></p>
+  <p>Unswiped: <i>{{unswiped}}</i></p>
+</div>
+<a
+  href="{{ url_for('playlist_completed', spotify_playlist_id=spotify_playlist_id)}}"
+  >Apply Changes</a
+>
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='js/track_swipe.js') }}"></script>
+{% endblock %}
