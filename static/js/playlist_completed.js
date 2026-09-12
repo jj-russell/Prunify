@@ -69,14 +69,21 @@ function showConfirmModal(action) {
   if (action === "apply") {
     title.textContent = "Apply changes?";
     text.textContent =
-      "This will finalize the changes you made to this playlist.";
+      "This will finalise the changes you made to this playlist.";
     confirmButton.textContent = "Apply changes";
     confirmButton.classList.remove("discard");
     confirmButton.classList.add("apply");
   } else {
-    title.textContent = "Discard changes?";
-    text.textContent =
-      "This will reset the songs in the current selection and undo your changes.";
+    if (getActiveTab() == "delete") {
+        title.textContent = "Discard deleted songs?";
+        text.textContent =
+          "This will clear all of your delete decisions.";
+    } else {
+        title.textContent = "Discard kept songs?";
+        text.textContent =
+          "This will clear all of your keep decisions.";
+
+    }
     confirmButton.textContent = "Discard changes";
     confirmButton.classList.remove("apply");
     confirmButton.classList.add("discard");
@@ -138,15 +145,21 @@ const spotify_playlist_id = tableContainer.getAttribute("data-playlist-id");
 function sendDecision(decision, action) {
   let trackIds = [];
 
-  if (decision === "delete") {
-    trackIds = deletedTrackIds;
-  } else if (decision === "keep") {
-    trackIds = keptTrackIds;
+  if (action === "apply") {
+    trackIds = [deletedTrackIds, keptTrackIds]
+  } else {
+
+    if (decision === "delete") {
+      trackIds = deletedTrackIds;
+    } else if (decision === "keep") {
+      trackIds = keptTrackIds;
+    }
   }
 
   const payload = {
     playlist_id: spotify_playlist_id,
     track_ids: trackIds,
+    decision,
     action: action,
   };
 

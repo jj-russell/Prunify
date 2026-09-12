@@ -3,33 +3,82 @@ from flask_session import Session
 from flask_cors import CORS
 from database import get_db, close_db
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
-import spotipy.util as util
+from spotipy.oauth2 import SpotifyOAuth
 import os
 from dotenv import load_dotenv
 from functools import wraps
 from datetime import datetime, timezone
 
+load_dotenv()
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+SPOTIFY_SCOPE = "user-library-read playlist-modify-public playlist-modify-private"
+
 app = Flask(__name__)
 app.teardown_appcontext(close_db)
-app.config["SECRET_KEY"] = "super-secret-key"
+app.config["SECRET_KEY"] = FLASK_SECRET_KEY
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 CORS(app)
 
-load_dotenv()
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+def create_oauth():
+    return SpotifyOAuth(client_id=CLIENT_ID,
+                        client_secret=CLIENT_SECRET,
+                        redirect_uri=REDIRECT_URI,
+                        scope=SPOTIFY_SCOPE)
+
+
+@app.route("/login")
+def login():
+    oauth = create_oauth()
+    auth_url = oauth.get_authorize_url()
+    return redirect(auth_url)
+
+
+@app.route("/callback")
+def callback():
+    oauth = create_oauth()
+    code = request.args.get("code")
+    if code is None:
+        return redirect(url_for("index"))
+
+    token_info = oauth.get_access_token(code)
+    session["token_info"] = token_info
+    return redirect(url_for("index"))
+
+
+def get_spotify_client():
+    token_info = session.get("token_info")
+    if not token_info:
+        return None
+
+    oauth = create_oauth()
+    # refresh if expired
+    try:
+        if oauth.is_token_expired(token_info):
+            token_info = oauth.refresh_access_token(token_info.get("refresh_token"))
+            session["token_info"] = token_info
+    except Exception:
+        # any failure means user must re-auth
+        session.pop("token_info", None)
+        return None
+
+    return spotipy.Spotify(auth=token_info.get("access_token"))
+
 
 @app.before_request
 def load_user():
-    scope="user-library-read"
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
-                                                            client_secret=CLIENT_SECRET,
-                                                            redirect_uri=REDIRECT_URI,
-                                                            scope=scope))
+    # allow unauthenticated access to these endpoints
+    public_paths = ("/", "/login", "/callback", "/test", "/attribution")
+    if request.path.startswith("/static") or request.path in public_paths:
+        return
+
+    sp = get_spotify_client()
+    if sp is None:
+        return redirect(url_for("login"))
 
     spotify_user_id = sp.current_user()["id"]
     current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -219,6 +268,7 @@ def get_tracks(spotify_playlist_id, status):
                           FROM playlist_tracks
                           WHERE playlist_id = ?
                           AND status = ?
+                          AND confirmed = 0
                           ORDER BY position;""", (playlist_id, status)).fetchall()
 
     if tracks is None:
@@ -314,12 +364,29 @@ def playlist_completed(spotify_playlist_id):
                            num_kept=num_kept,
                            num_deleted=num_deleted)
 
-def apply_changes(spotify_playlist_id, track_ids):
-    print(spotify_playlist_id)
+def apply_changes(spotify_playlist_id, track_ids, decision):
+    db = get_db()
+    playlist_id = get_playlist_db_id(spotify_playlist_id)
+
+    deleted_track_ids = track_ids[0]
+    kept_track_ids = track_ids[1]
+
+    for track_id in deleted_track_ids:
+        db.execute("""UPDATE playlist_tracks
+                        SET confirmed = 1
+                        WHERE playlist_id = ?
+                        AND spotify_track_id = ?""", (playlist_id, track_id))
+        db.commit()
+
+    for track_id in kept_track_ids:
+        db.execute("""UPDATE playlist_tracks
+                        SET confirmed = 1
+                        WHERE playlist_id = ?
+                        AND spotify_track_id = ?""", (playlist_id, track_id))
+        db.commit()
 
 def discard_changes(spotify_playlist_id, track_ids):
     db = get_db()
-
     playlist_id = get_playlist_db_id(spotify_playlist_id)
 
     for track_id in track_ids:
@@ -337,9 +404,10 @@ def handle_playlist_changes():
     spotify_playlist_id = data["playlist_id"]
     track_ids = data["track_ids"]
     action = data["action"]
+    decision = data["decision"]
 
     if action == "apply":
-        apply_changes(spotify_playlist_id, track_ids)
+        apply_changes(spotify_playlist_id, track_ids, decision)
     elif action == "discard":
         discard_changes(spotify_playlist_id, track_ids)
 
