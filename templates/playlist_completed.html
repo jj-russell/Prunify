@@ -74,7 +74,6 @@
         </div>
     </div>
     </section>
-    <script src="{{ url_for('static', filename='js/playlist_completed.js') }}"></script>
     <section class="decision">
         <button onclick="discardChanges()">Discard Changes</button>
         <button onclick="applyChanges()">Apply Changes</button>
@@ -91,4 +90,7 @@
             </div>
         </div>
     </div>
+    {% endblock %}
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='js/playlist_completed.js') }}"></script>
     {% endblock %}

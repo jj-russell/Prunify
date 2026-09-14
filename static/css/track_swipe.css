@@ -14,13 +14,13 @@ main {
 .track-card {
   padding: 1em;
   background-color: var(--bg-secondary);
-  width: min(60vw, 300px);
+  width: min(60vw, 500px);
 }
 
 .track-card > img {
   display: block;
   width: 100%;
-  max-width: 300px;
+  max-width: 500px;
   aspect-ratio: 1;
   object-fit: cover;
   margin: 0 auto;

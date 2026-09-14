@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS playlists (
     user_id INTEGER NOT NULL,
     spotify_playlist_id TEXT NOT NULL,
     name TEXT NOT NULL,
+    image_url TEXT,
     loaded_at DATETIME,
     completed_at DATETIME,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

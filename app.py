@@ -187,14 +187,17 @@ def load_playlist(spotify_playlist_id):
     user_id = user_id["id"]
 
     playlist_name = g.user.playlist(spotify_playlist_id)["name"]
+    playlist_image = g.user.playlist(spotify_playlist_id)["images"][0]["url"]
     if not playlist_exists:
-        db.execute("""INSERT INTO playlists (user_id, spotify_playlist_id, name) 
-                      VALUES (?, ?, ?);""", (user_id, spotify_playlist_id, playlist_name,))
+        db.execute("""INSERT INTO playlists (user_id, spotify_playlist_id, name, image_url) 
+                      VALUES (?, ?, ?, ?);""", (user_id, spotify_playlist_id, playlist_name, playlist_image))
 
     current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     db.execute("""UPDATE playlists
-                  SET updated_at = ?
-                  WHERE user_id = ?;""", (current_time, user_id))
+                  SET name = ?,
+                  image_url = ?,
+                  updated_at = ?
+                  WHERE user_id = ?;""", (playlist_name, playlist_image, current_time, user_id))
     db.commit()
 
 def load_tracks(spotify_playlist_id):
@@ -348,8 +351,11 @@ def track_decision():
 
 @app.route("/playlist_completed/<spotify_playlist_id>")
 def playlist_completed(spotify_playlist_id):
-    playlist = g.user.playlist(spotify_playlist_id)
-    playlist_name = playlist["name"]
+    db = get_db()
+    playlist_name = db.execute("""SELECT name
+                                   FROM playlists
+                                   WHERE spotify_playlist_id = ?""", (spotify_playlist_id,)).fetchone()
+    playlist_name = playlist_name["name"]
 
     num_kept, num_deleted, _ = playlist_stats(spotify_playlist_id)
 
@@ -367,6 +373,8 @@ def playlist_completed(spotify_playlist_id):
 def apply_changes(spotify_playlist_id, track_ids):
     db = get_db()
     playlist_id = get_playlist_db_id(spotify_playlist_id)
+    if playlist_id is None:
+        return None
 
     deleted_track_ids = track_ids[0]
     kept_track_ids = track_ids[1]
@@ -390,6 +398,8 @@ def apply_changes(spotify_playlist_id, track_ids):
 def discard_changes(spotify_playlist_id, track_ids):
     db = get_db()
     playlist_id = get_playlist_db_id(spotify_playlist_id)
+    if playlist_id is None:
+        return None
 
     for track_id in track_ids:
         db.execute("""UPDATE playlist_tracks
@@ -416,7 +426,34 @@ def handle_playlist_changes():
 
 @app.route("/playlist_history/<spotify_playlist_id>")
 def playlist_history(spotify_playlist_id):
-    return render_template("playlist_history.html")
+    playlist_id = get_playlist_db_id(spotify_playlist_id)
+    if playlist_id is None:
+        return None
+    
+    db = get_db()
+    playlist_info = db.execute("""SELECT name, image_url
+                                   FROM playlists
+                                   WHERE spotify_playlist_id = ?""", (spotify_playlist_id,)).fetchone()
+    playlist_name = playlist_info["name"]
+    playlist_image = playlist_info["image_url"]
+
+    deleted_tracks = db.execute("""SELECT spotify_track_id, track_name, track_artists, track_image
+                                  FROM playlist_tracks
+                                  WHERE status = 'delete'
+                                  AND confirmed = 1
+                                  AND playlist_id = ?;""", (playlist_id,)).fetchall()
+
+    kept_tracks = db.execute("""SELECT spotify_track_id, track_name, track_artists, track_image
+                                  FROM playlist_tracks
+                                  WHERE status = 'keep'
+                                  AND confirmed = 1
+                                  AND playlist_id = ?;""", (playlist_id,)).fetchall()
+
+    return render_template("playlist_history.html",
+                            playlist_name=playlist_name,
+                            playlist_image=playlist_image,
+                            deleted_tracks=deleted_tracks,
+                            kept_tracks=kept_tracks)
 
 @app.route("/attribution")
 def attribution():

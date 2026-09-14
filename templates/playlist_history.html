@@ -2,9 +2,83 @@
     {% block styles %}
     <link
         rel="stylesheet"
-        href="{{ url_for('static', filename='css/attribution.css') }}"
+        href="{{ url_for('static', filename='css/playlist_history.css') }}"
     />
     {% endblock %}
     {% block main_content %}
-        <p>hi</p>
+    <section class="top">
+        <img
+          src="{% if playlist_image %}
+                    {{ playlist_image }}
+                {% else %}
+                    {{ url_for('static', filename='images/placeholder.png') }}
+                {% endif %}"
+          alt="Playlist cover"
+        />
+        <h3>{{ playlist_name }}</h3>
+    </section>
+    <section class="track-action-switcher">
+        <button class="delete">Deleted Tracks</button>
+        <button class="keep">Kept Tracks</button>
+    </section>
+    <section class="table-section">
+    <div class="table-container" data-playlist-id="{{spotify_playlist_id}}">
+        <div class="deleted-tracks">
+            {% if deleted_tracks %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Track Title</th>
+                        <th>Artist</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for track in deleted_tracks %}
+                    <tr data-track-id="{{track["spotify_track_id"]}}">
+                        <td><img src="{{track["track_image"]}}" class="thumbnail"></td>
+                        <td><strong>{{track["track_name"]}}</strong></td>
+                        <td>{{track["track_artists"]}}</td>
+                        <td><button>Undo</button></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No deleted tracks found</p>
+            {% endif %}
+        </div>
+
+        <div class="kept-tracks">
+            {% if kept_tracks %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Track Title</th>
+                        <th>Artist</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for track in kept_tracks %}
+                    <tr data-track-id="{{track["spotify_track_id"]}}">
+                        <td><img src="{{track["track_image"]}}" class="thumbnail"></td>
+                        <td><strong>{{track["track_name"]}}</strong></td>
+                        <td>{{track["track_artists"]}}</td>
+                        <td><button>Undo</button></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No kept tracks found</p>
+            {% endif %}
+        </div>
+    </div>
+    </section>
+    {% endblock %}
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='js/playlist_history.js') }}"></script>
     {% endblock %}
