@@ -32,7 +32,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the project root:
+Go to `https://developer.spotify.com/dashboard` and create an app.
+
+Create a `.env` file in the project root with the information from the developer app:
 
 ```env
 CLIENT_ID=your_spotify_client_id
