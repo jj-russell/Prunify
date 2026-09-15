@@ -112,6 +112,7 @@ def index():
 def select_playlist():
     playlists_info = g.user.current_user_playlists()
     playlists = [playlist for playlist in playlists_info["items"]]
+    print(playlists)
 
     return render_template("select_playlist.html", playlists=playlists)
 
@@ -421,6 +422,22 @@ def handle_playlist_changes():
         apply_changes(spotify_playlist_id, track_ids)
     elif action == "discard":
         discard_changes(spotify_playlist_id, track_ids)
+
+    return jsonify({"success": True})
+
+@app.route("/delete_playlist", methods=["POST"])
+def delete_playlist():
+    data = request.get_json()
+    spotify_playlist_id = data["playlist_id"]
+    g.user.current_user_unfollow_playlist(spotify_playlist_id)
+
+    db = get_db()
+    playlist_id = get_playlist_db_id(spotify_playlist_id)
+    db.execute("""DELETE FROM playlist_tracks
+                  WHERE playlist_id = ?;""", (playlist_id,))
+    db.execute("""DELETE FROM playlists
+                  WHERE spotify_playlist_id = ?;""", (spotify_playlist_id,))
+    db.commit()
 
     return jsonify({"success": True})
 
