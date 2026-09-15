@@ -188,7 +188,11 @@ def load_playlist(spotify_playlist_id):
     user_id = user_id["id"]
 
     playlist_name = g.user.playlist(spotify_playlist_id)["name"]
-    playlist_image = g.user.playlist(spotify_playlist_id)["images"][0]["url"]
+    try:
+        playlist_image = g.user.playlist(spotify_playlist_id)["images"][0]["url"]
+    except:
+        playlist_image = url_for('static', filename='images/placeholder.png')
+
     if not playlist_exists:
         db.execute("""INSERT INTO playlists (user_id, spotify_playlist_id, name, image_url) 
                       VALUES (?, ?, ?, ?);""", (user_id, spotify_playlist_id, playlist_name, playlist_image))

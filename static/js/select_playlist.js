@@ -1,28 +1,29 @@
-const swiper = new Swiper('.swiper', {
-    loop: true,
-    mousewheel: true,
+const slideCount = document.querySelectorAll('.swiper .swiper-slide').length;
 
-    slidesPerView: 3,
-    centeredSlides: true,
-    spaceBetween: 30,
+if (slideCount > 0) {
+    const swiper = new Swiper('.swiper', {
+        loop: slideCount > 1,
+        mousewheel: true,
 
-    navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-    },
+        slidesPerView: 1,
+        centeredSlides: slideCount > 1,
+        spaceBetween: 30,
 
-    breakpoints: {
-        0: {
-            slidesPerView: 1
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
         },
-        700: {
-            slidesPerView: 2
-        },
-        1100: {
-            slidesPerView: 3
+
+        breakpoints: {
+            700: {
+                slidesPerView: Math.min(2, slideCount)
+            },
+            1100: {
+                slidesPerView: Math.min(3, slideCount)
+            }
         }
-    }
-});
+    });
+}
 
 function deletePlaylist() {
     const deleteBtn = document.querySelector(".playlist-action.delete");

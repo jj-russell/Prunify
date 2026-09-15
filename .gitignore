@@ -4,3 +4,4 @@ flask_session/
 test*
 .cache
 .env
+app.db
